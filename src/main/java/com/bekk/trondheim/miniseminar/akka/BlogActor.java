@@ -16,20 +16,6 @@ public class BlogActor extends AbstractActor {
 
     private BlogRepository blogRepository;
 
-    public static class New {
-        public BlogPost post;
-        public New(BlogPost post) {this.post = post;}
-    }
-    public static class GetAll {}
-    public static class AllPosts {
-        public List<BlogPost> posts;
-        public AllPosts(List<BlogPost> posts) {this.posts = posts;}
-    }
-    public static class Get {}
-    public static class Created {
-        public String id;
-        public Created(String id) {this.id = id;}
-    }
     public static Props mkProps(BlogRepository blogRepository) {
         return Props.create(BlogActor.class, () -> new BlogActor(blogRepository));
     }
@@ -62,6 +48,23 @@ public class BlogActor extends AbstractActor {
                 sender.tell(new Created(id), self());
             }
         });
+    }
+
+    // Messages
+
+    public static class New {
+        public BlogPost post;
+        public New(BlogPost post) {this.post = post;}
+    }
+    public static class GetAll {}
+    public static class AllPosts {
+        public List<BlogPost> posts;
+        public AllPosts(List<BlogPost> posts) {this.posts = posts;}
+    }
+    public static class Get {}
+    public static class Created {
+        public String id;
+        public Created(String id) {this.id = id;}
     }
 
 }
