@@ -6,6 +6,7 @@ import akka.actor.Props;
 import akka.actor.Status;
 import com.bekk.trondheim.miniseminar.domain.BlogPost;
 import com.bekk.trondheim.miniseminar.repository.BlogRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 import java.util.List;
 
@@ -35,27 +36,32 @@ public class BlogActor extends AbstractActor {
 
     public BlogActor(BlogRepository blogRepository) {
         this.blogRepository = blogRepository;
-        receive(match(New.class, msg -> {
-            ActorRef sender = sender();
-            blogRepository.create(msg.post).whenComplete((id, err) -> {
-                if(err != null) {
-                    sender.tell(new Status.Failure(err), self());
-                }
-                else {
-                    sender.tell(new Created(id), self());
-                }
-            });
-        }).match(GetAll.class, msg -> {
-            ActorRef sender = sender();
-            blogRepository.findAll().whenComplete((posts, err) -> {
-                if (err != null) {
-                    sender.tell(new Status.Failure(err), self());
-                }
-                else {
-                    sender.tell(new AllPosts(posts), self());
-                }
-            });
-        }).build());
+        receive(match(New.class, this::handleNewPost)
+                .match(GetAll.class, this::handleGetAllPosts)
+                .build());
+    }
+
+    private void handleGetAllPosts(GetAll msg) {
+        ActorRef sender = sender();
+        blogRepository.findAll().whenComplete((posts, err) -> {
+            if (err != null) {
+                sender.tell(new Status.Failure(err), self());
+            }
+            else {
+                sender.tell(new AllPosts(posts), self());
+            }
+        });
+    }
+
+    private void handleNewPost(New msg) throws JsonProcessingException {ActorRef sender = sender();
+        blogRepository.create(msg.post).whenComplete((id, err) -> {
+            if(err != null) {
+                sender.tell(new Status.Failure(err), self());
+            }
+            else {
+                sender.tell(new Created(id), self());
+            }
+        });
     }
 
 }
